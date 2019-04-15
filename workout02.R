@@ -1,23 +1,14 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(ggplot2)
 library(Rmisc)
 
-# Define UI for application that draws a histogram
+
 ui <- fluidPage(
   
-  # Application title
+  # Title
   titlePanel("Investment Scenarios"),
   
-  # Sidebar with a slider input for number of bins 
+  # Widgets
   fluidRow(
     column(4,
            sliderInput(inputId = "init",
@@ -64,12 +55,13 @@ ui <- fluidPage(
                        selected = 1)
     ),
     hr(),
-    # Show a plot of the generated distribution
+    # Plot
     column(12,
            plotOutput("distPlot")
            
     ),
     hr(),
+    # Table of data
     column(12,
            h4("Balances"),
            verbatimTextOutput("summary")
@@ -78,7 +70,8 @@ ui <- fluidPage(
   )
 )
 
-#ENTIRE FUNCTION COPY PASTED FROM WARMUP06
+#ENTIRE FUNCTION COPY PASTED FROM WARMUP06, THEN MODIFIED SLIGHTLY FOR FACETING, ETC...
+
 #' @title Future Value Calculator
 #' @description Calculates the future value of an investment with a given flat rate over a certain period of time.
 #' @param amount The amount of money invested into the product.
@@ -126,10 +119,10 @@ growing_annuity <- function(contrib = 0, rate = 0, growth = 0, years = 0) {
 }
 
 
-#' @title Investment Graph Creator
-#' @description Creates the Investment Graph that will be used to plot the timelines of investing
-#' @param 
-#' @return The graph to display
+#' @title Investment Graph Data Creator
+#' @description Creates the data for the investment graph that will be used to plot the timelines of investing
+#' @param facetka the only unorthodox input, if set to 1, then no faceting else it will give a faceted datatable
+#' @return The proper data table to graph
 datamorpher <- function(init = 1000, rrate = 5, years = 10, acont = 2000, growrate = 2, facetka = 1) {
   i = 0
   year <- vector(length = years + 1)
@@ -151,6 +144,13 @@ datamorpher <- function(init = 1000, rrate = 5, years = 10, acont = 2000, growra
   }
 }
 
+#' @title Investment Graph Generator
+#' @description Takes a correct data table and creates a graph
+#' @param datafr The dataframe to build a graph out of
+#' @param years The number of years
+#' @param facetka 1 means make a non-faceted graph, and 2 means make a faceted graph.
+#' @return a ggplot object that will be displayed
+
 plotgraph <- function(datafr = NA, years = 10, facetka = 1) {
   if (facetka == 1) {
     moneygraph <- ggplot(datafr) + geom_point(aes(x = year, y = no_contrib, color = "No Contribution"),size = 2.5) + geom_line(aes(x = year, y = no_contrib, color = "No Contribution"),size = 1.2) + geom_point(aes(x = year, y = fixed_contrib, color = "Fixed Contribution"),size=2.5) + geom_line(aes(x = year, y = fixed_contrib, color = "Fixed Contribution"),size=1.2) + geom_point(aes(x = year, y = growing_contrib, color = "Growing Contribution"),size=2.5) + geom_line(aes(x = year, y = growing_contrib, color = "Growing Contribution"),size=1.2) + labs(color = "Modality:", x = "Years", y = "Balance (in dollars)", title = "Balance over 10 years with Different Savings-Investing Modalities")  + theme(plot.title = element_text(hjust = 0.5)) + scale_x_continuous(breaks = 0:years)
@@ -164,9 +164,11 @@ plotgraph <- function(datafr = NA, years = 10, facetka = 1) {
 
 
 server <- function(input, output) {
+  #the plot to be graphed
   output$distPlot <- renderPlot({
     plotgraph(datamorpher(input$init, input$return, input$years, input$ancont, input$growr, input$facetyn),input$years, input$facetyn)
   })
+  #the data table
   output$summary <- renderPrint({
     dataset <- datamorpher(input$init, input$return, input$years, input$ancont, input$growr, 1)
     print(dataset)
