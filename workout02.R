@@ -24,6 +24,7 @@ ui <- fluidPage(
                        label = "Initial amount",
                        min = 1,
                        max = 10000,
+                       pre = "$",
                        value = 1000)
     ),
     column(4,
@@ -46,6 +47,7 @@ ui <- fluidPage(
                        label = "Annual Contribution",
                        min = 0,
                        max = 50000,
+                       pre = "$",
                        value = 2000)
     ),
     column(4,
@@ -144,7 +146,7 @@ datamorpher <- function(init = 1000, rrate = 5, years = 10, acont = 2000, growra
   if (facetka == 1) {
     modalities <- data.frame(year,no_contrib,fixed_contrib,growing_contrib)
   } else {
-    modalities <- data.frame(c(year,year,year),c(no_contrib,fixed_contrib,growing_contrib),c(rep("no_contrib",times = length(year)),rep("fixed_contrib",times = length(year)),rep("growing_contrib",times =length(year))))
+    modalities <- data.frame(c(year,year,year),c(no_contrib,fixed_contrib,growing_contrib),factor(c(rep("no_contrib",times = length(year)),rep("fixed_contrib",times = length(year)),rep("growing_contrib",times =length(year))),levels = c("no_contrib","fixed_contrib","growing_contrib")))
     return(modalities)
   }
 }
@@ -153,7 +155,8 @@ plotgraph <- function(datafr = NA, years = 10, facetka = 1) {
   if (facetka == 1) {
     moneygraph <- ggplot(datafr) + geom_point(aes(x = year, y = no_contrib, color = "No Contribution"),size = 2.5) + geom_line(aes(x = year, y = no_contrib, color = "No Contribution"),size = 1.2) + geom_point(aes(x = year, y = fixed_contrib, color = "Fixed Contribution"),size=2.5) + geom_line(aes(x = year, y = fixed_contrib, color = "Fixed Contribution"),size=1.2) + geom_point(aes(x = year, y = growing_contrib, color = "Growing Contribution"),size=2.5) + geom_line(aes(x = year, y = growing_contrib, color = "Growing Contribution"),size=1.2) + labs(color = "Modality:", x = "Years", y = "Balance (in dollars)", title = "Balance over 10 years with Different Savings-Investing Modalities")  + theme(plot.title = element_text(hjust = 0.5)) + scale_x_continuous(breaks = 0:years)
   } else {
-    moneygraph <- ggplot(data=datafr,aes(x = datafr[,1],y = datafr[,2], color = "Modality:")) + geom_line() + geom_point() + geom_area(aes(fill = "yes", alpha = 0.5))  + labs(x = "Years", y = "Balance (in dollars)", title = "Balance over 10 years with Different Savings-Investing Modalities") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + facet_wrap(.~datafr[,3])
+    variable <- datafr[,3]
+    moneygraph <- ggplot(data=datafr,aes(x = datafr[,1],y = datafr[,2],color = variable,fill=variable)) + geom_line(size=1) + geom_point(size=2) + geom_area(alpha = 0.5) + labs(x = "Years", y = "Balance (in dollars)", title = "Balance over 10 years with Different Savings-Investing Modalities") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + facet_wrap(.~datafr[,3])
   }
   return(moneygraph)
 }
